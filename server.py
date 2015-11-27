@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 # the "gatekeeper".
 # an attempt to implement Hybrid TCP-UDP Transport for Web Traffic by Cidon, Rom, Gupta, and Schuba
 import socket
@@ -18,7 +20,7 @@ udp_sock.bind((host, port))
 
 udp_client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-
+print "Server started..."
 
 while True:
     mode = ""
@@ -28,6 +30,7 @@ while True:
         data, addr = udp_sock.recvfrom(4096)
         if data != "":
             mode = "udp"
+            print "UDP mode"
     except socket.error:
         pass
             
@@ -36,18 +39,24 @@ while True:
         data = sock.recv(4096)
         if data != "":
             mode = "tcp"
+            print "TCP mode"
     except socket.error:
         pass
 
     if data != "":
-        #print "Request received!"
+        print "Request received!"
+        #print data, len(data)
         internal_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         internal_sock.connect((host, realPort))
         internal_sock.send(data)
-        response = internal_sock.recv(4096 * 1024)
-        internal_sock.close()
+        internal_sock.send('\n\n')
+        internal_sock.setblocking(1)
+        print "sent data"
+        response = internal_sock.recv(4096*32)
         
-        print len(response)
+        internal_sock.close()
+        #print response
+        #print len(response)
         if mode == "udp":
             udp_client.connect((addr[0], port))
             if len(response) < 1460:
