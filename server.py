@@ -45,11 +45,12 @@ while True:
 
     if data != "":
         print "Request received!"
+        print data
         #print data, len(data)
         internal_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         internal_sock.connect((host, realPort))
         internal_sock.send(data)
-        internal_sock.send('\n\n')
+        #internal_sock.send('\n\n')
         internal_sock.setblocking(1)
         print "sent data"
         response = internal_sock.recv(4096*32)
@@ -63,6 +64,7 @@ while True:
                 udp_client.sendall(response)
             else:
                 udp_client.sendall("USETCP")
+                print "USETCP"
         elif mode == "tcp":
             sock.sendall(response)
             sock.close()
