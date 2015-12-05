@@ -28,18 +28,23 @@ while True:
     data = ""
     
     try:        
-       sock, addr = tcp_socket.accept()
-       data = sock.recv(4096)
-       print data
+        sock, addr = tcp_socket.accept()
+        data = sock.recv(4096)
+        print data
          if data:
-            udp_connector.send(data)
-            #udp_connector.send('\n\n')
-            ready = select.select([udp_receiver], [], [], tcp_socket.getdefaulttimeout())
-            response = ''
-            if ready[0]:
-                response = udp_receiver.recv(4096 * 32)
-                print response
-            if not ready[0] or response.startswith('USETCP'): # use tcp
+             reponse = ''
+            if len(sys.argv) < 1:
+                mode = "udp"
+                udp_connector.send(data)
+                #udp_connector.send('\n\n')
+                ready = select.select([udp_receiver], [], [], tcp_socket.getdefaulttimeout())
+                response = ''
+                if ready[0]:
+                    response = udp_receiver.recv(4096 * 32)
+                    print response
+            else:
+                mode = "tcp"
+            if mode = "tcp" or not ready[0] or response.startswith('USETCP'): # use tcp
                 print "switching to TCP"
                 tcp_connector = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 tcp_connector.connect((remote, remotePort))
@@ -49,10 +54,10 @@ while True:
 
            print response
            sock.sendall(response)
-        sock.close()                
+           sock.close()                
 
     except socket.error:
         pass
-            
+    
         
         
