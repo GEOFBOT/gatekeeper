@@ -4,6 +4,11 @@
 # an attempt to implement Hybrid TCP-UDP Transport for Web Traffic by Cidon, Rom, Gupta, and Schuba
 import socket
 
+# Timestap print
+def log(msg):
+    from datetime import datetime
+    print '[' + str(datetime.now()) + '] ' + msg
+
 host = ''
 port = 81
 realPort = 80
@@ -20,7 +25,7 @@ udp_sock.bind((host, port))
 
 udp_client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-print "Server started..."
+log("Server started...")
 
 while True:
     mode = ""
@@ -29,8 +34,8 @@ while True:
     try:
         data, addr = udp_sock.recvfrom(4096)
         if data != "":
+            log("received UDP connection!")
             mode = "udp"
-            print "UDP mode"
     except socket.error:
         pass
             
@@ -39,32 +44,27 @@ while True:
         data = sock.recv(4096)
         if data != "":
             mode = "tcp"
-            print "TCP mode"
+            log("received TCP connection!")
     except socket.error:
         pass
 
     if data != "":
-        print "Request received!"
-        print data
         #print data, len(data)
         internal_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         internal_sock.connect((host, realPort))
         internal_sock.send(data)
-        #internal_sock.send('\n\n')
         internal_sock.setblocking(1)
-        print "sent data"
+        log("data sent to web server")
         response = internal_sock.recv(4096*32)
         
         internal_sock.close()
-        #print response
-        #print len(response)
         if mode == "udp":
             udp_client.connect((addr[0], port))
             if len(response) < 1460:
                 udp_client.sendall(response)
             else:
                 udp_client.sendall("USETCP")
-                print "USETCP"
+                log("response to large, directed client to retry with TCP")
         elif mode == "tcp":
             sock.sendall(response)
             sock.close()
