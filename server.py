@@ -42,7 +42,7 @@ while True:
     data = ""
     
     try:
-        data, addr = udp_sock.recvfrom(4096)
+        data, addr = udp_sock.recvfrom(2048)
         if data != "":
             log("received UDP connection!")
             mode = "udp"
@@ -51,13 +51,13 @@ while True:
             
     try:
         sock, addr = tcp_sock.accept()
-        data = sock.recv(4096)
+        data = sock.recv(2048)
         if data != "":
             mode = "tcp"
             log("received TCP connection!")
     except socket.error:
         pass
-
+        
     if data != "":
         #print data, len(data)
         internal_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -68,45 +68,50 @@ while True:
 
         response = ''
         resp = 'placeholder'
-        response = internal_sock.recv(4096)
-        matches = re.findall(p, response)
-        headerEnd = response.find('\r\n\r\n') + 4 # get end of header
-        # TODO: share this between scripts
-        if not (len(matches) < 1 or len(matches[0].split(' ')) < 1):
-            contentLength = int(matches[0].split(' ')[1])
-            log("content length = " + str(contentLength))
-            log('header ends at ' + str(headerEnd))
-            while len(response) - headerEnd < contentLength:
-                resp = internal_sock.recv(4096)
-                log("receiving more data..." + str(len(resp)))
-                response += resp
+        response = internal_sock.recv(2048)
 
-        else:
-            log('no content length...')
-            z = re.compile(ur'Transfer-Encoding:\schunked')
-            if not len(re.findall(z, response)) > 0:
-                log('not chunking either, wtf?')
-                log('Fatal error: alien technology discovered! Report to CIA as soon as possible.')
-                
+        if len(response) >= 1460 and mode == 'udp':
+            response = 'USETCP'
+            log('Cut off transfer, instructing client to use TCP')
+        else:            
+            matches = re.findall(p, response)
+            headerEnd = response.find('\r\n\r\n') + 4 # get end of header
+            # TODO: share this between scripts
+            if not (len(matches) < 1 or len(matches[0].split(' ')) < 1):
+                contentLength = int(matches[0].split(' ')[1])
+                log("content length = " + str(contentLength))
+                log('header ends at ' + str(headerEnd))
+                while len(response) - headerEnd < contentLength:
+                    resp = internal_sock.recv(2048)
+                    log("receiving more data..." + str(len(resp)))
+                    response += resp
+
             else:
-                log('chunking detected...')
-                runningTotal = headerEnd
-                chunkSize = -1
-                responseBody = response[headerEnd:]
-                runningTotal = 0
-                chunks = responseBody.split('\r\n')
-                #print chunks
-                i = 0
-                # TODO: replace this really problematic way of doing this
-                while '0' not in chunks: #response.find('\r\n0\r\n') == -1:
-                    log('I need moar chunks!')
-                    response += internal_sock.recv(4096)
+                log('no content length...')
+                z = re.compile(ur'Transfer-Encoding:\schunked')
+                if not len(re.findall(z, response)) > 0:
+                    log('not chunking either, wtf?')
+                    log('Fatal error: alien technology discovered! Report to CIA as soon as possible.')
+                
+                else:
+                    log('chunking detected...')
+                    runningTotal = headerEnd
+                    chunkSize = -1
                     responseBody = response[headerEnd:]
                     runningTotal = 0
                     chunks = responseBody.split('\r\n')
+                    #print chunks
+                    i = 0
+                    # TODO: replace this really problematic way of doing this
+                    while '0' not in chunks: #response.find('\r\n0\r\n') == -1:
+                        log('I need moar chunks!')
+                        response += internal_sock.recv(2048)
+                        responseBody = response[headerEnd:]
+                        runningTotal = 0
+                        chunks = responseBody.split('\r\n')
                         
                 
-#        print response
+        #        print response
         internal_sock.shutdown(socket.SHUT_RDWR)
         internal_sock.close()
         if mode == "udp":
