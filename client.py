@@ -54,7 +54,7 @@ while True:
             else:
                 mode = "udp"
                 udp_connector.send(data)
-                ready = select.select([udp_receiver], [], [], tcp_socket.getdefaulttimeout())
+                ready = select.select([udp_receiver], [], [], socket.getdefaulttimeout())
                 if ready[0]:
                     response = udp_receiver.recv(4096 * 32)
                     #print response
