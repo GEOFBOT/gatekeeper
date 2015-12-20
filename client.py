@@ -38,16 +38,16 @@ import re
 p = re.compile(ur'Content-Length:\s\d*\s')
 
 def recvall(socket):
-    response = socket.recv(4096)
+    response = socket.recv(2048)
     matches = re.findall(p, response)
+    headerEnd = response.find('\r\n\r\n') + 4
     # with Content-Length
     if not (len(matches) < 1 or len(matches[0].split(' ')) < 1):
         contentLength = int(matches[0].split(' ')[1])
         log("content length = " + str(contentLength))
-        headerEnd = response.find('\r\n\r\n') + 4
         log('header ends at ' + str(headerEnd))
         while len(response) - headerEnd < contentLength:
-            resp = socket.recv(4096)
+            resp = socket.recv(2048)
             log("receiving more data..." + str(len(resp)))
             response += resp
 
@@ -72,7 +72,7 @@ def recvall(socket):
             # TODO: replace this really problematic way of doing this
             while '0' not in chunks: #response.find('\r\n0\r\n') == -1:
                 log('I need moar chunks!')
-                response += internal_sock.recv(4096)
+                response += socket.recv(2048)
                 responseBody = response[headerEnd:]
                 runningTotal = 0
                 chunks = responseBody.split('\r\n')
@@ -89,7 +89,7 @@ while True:
 
     try:
         sock, addr = tcp_socket.accept()
-        data = sock.recv(4096)
+        data = sock.recv(2048)
         log('Data received...')
         if data:
             response = ''
