@@ -32,7 +32,7 @@ log("Client proxy started...")
 
 tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 tcp_socket.bind((host, port))
-tcp_socket.listen(5)
+tcp_socket.listen(20)
 
 import re
 p = re.compile(ur'Content-Length:\s\d*\s')
@@ -76,6 +76,7 @@ def recvall(socket):
                 responseBody = response[headerEnd:]
                 runningTotal = 0
                 chunks = responseBody.split('\r\n')
+    #print response
     return response
 
 permmode = ''
@@ -114,7 +115,9 @@ while True:
 
         sock.sendall(response)
         log('Sent response back to client browser')
+        sock.shutdown(socket.SHUT_RDWR)
         sock.close()
+        log('Sock to client should be closed now')
 
     except socket.error:
         pass

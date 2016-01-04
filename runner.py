@@ -14,7 +14,7 @@ for num in range(int(times)):
     tries = 0
     while z != 0:
         # keep trying if it fails
-        z = subprocess.call(['phantomjs', 'pageload.js', host, str(num), filename])
+        z = subprocess.call(['C:\\Dev\\phantomjs-2.0.0-windows\\bin\\phantomjs.exe', 'pageload.js', host, str(num), filename])
         tries += 1
         # too many tries (give up)
         if tries > MAX_TRIES:
