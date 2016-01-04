@@ -6,7 +6,7 @@ import socket
 import sys
 
 # TCP Limit
-LIMIT = 1460 * 2 # formerly 1460
+LIMIT = 1460# BEFORE INCREASING THIS, MAKE SURE WE CAN TELL THE ORDER OF PACKETS ON UDP!!!111111elevenee!!!11
 
 if len(sys.argv) < 2:
     print "Usage: python server.py [server port]"
@@ -73,7 +73,7 @@ while True:
         resp = 'placeholder'
         response = internal_sock.recv(2048)
 
-        if len(response) >= LIMIT and mode == 'udp':
+        if len(response) > LIMIT and mode == 'udp':
             response = 'USETCP'
             log('Cut off transfer, instructing client to use TCP')
         else:
@@ -84,11 +84,13 @@ while True:
                 contentLength = int(matches[0].split(' ')[1])
                 log("content length = " + str(contentLength))
                 log('header ends at ' + str(headerEnd))
-                while len(response) - headerEnd < contentLength:
+                while len(response) - headerEnd < contentLength:# - 100: # TODO
                     log("Need moar data!")
                     resp = internal_sock.recv(2048)
                     log("receiving more data..." + str(len(resp)))
                     response += resp
+                    #print resp
+
 
             else:
                 log('no content length...')
@@ -120,7 +122,7 @@ while True:
         internal_sock.close()
         if mode == "udp":
             udp_client.connect((addr[0], port))
-            if len(response) < LIMIT:
+            if len(response) <= LIMIT:
                 udp_client.sendall(response)
             else:
                 udp_client.sendall("USETCP")
