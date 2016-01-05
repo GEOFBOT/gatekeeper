@@ -120,4 +120,8 @@ while True:
         log('Sock to client should be closed now')
 
     except socket.error:
+        if sock:
+            sock.shutdown(socket.SHUT_RDWR)
+            sock.close()
+        log('?????')
         pass

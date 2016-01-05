@@ -71,6 +71,7 @@ page.open(address, function(status) {
     encodeURIComponent(address) + ',' + counter + ',' + time + '\n',
     'a'
   );
+  page.render('renderd/' + encodeURIComponent(address) + '---' + encodeURIComponent(new Date().getTime()) + '.png');
   phantom.exit();
   /*loadPage(address, count, max, 0, function (runningLoadTotal) {
     //var avg = runningLoadTotal / max;
